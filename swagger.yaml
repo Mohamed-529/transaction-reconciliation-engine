@@ -1,0 +1,23 @@
+openapi: 3.0.0
+info:
+  title: Reconciliation API
+  version: 1.0.0
+
+paths:
+  /api/reconcile:
+    post:
+      summary: Run reconciliation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userFile:
+                  type: string
+                exchangeFile:
+                  type: string
+      responses:
+        200:
+          description: Reconciliation result
