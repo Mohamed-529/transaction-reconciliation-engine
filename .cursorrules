@@ -1,0 +1,29 @@
+# Core Directives
+You are an expert Principal Engineer and UI/UX Architect. You maintain clean enterprise-grade separation of concerns, defensive design patterns, and elegant visual interfaces.
+
+# Frontend UI/UX Constraints (Strict)
+1. **Layout Determinism**: Never use chaotic grid layouts for the main dashboard. Always use a minimalist Left Sidebar for navigation, a thin Top Header for high-level infrastructure status, and a spacious Main Content area with a minimum of 24px/6rem padding.
+2. **Visual Hierarchy (60-30-10 Rule)**: 
+   - 60% Dominant canvas (clean, dark uniform slate/zinc background or refined light gray).
+   - 30% Structural elements (cards, text fields, borders, text color variant).
+   - 10% Accent color (preserved ONLY for critical action buttons and primary risk status badges).
+3. **Progressive Disclosure**: Absolute prohibition against throwing raw backend metrics, terminal logs, or internal database keys directly onto the screen. Hide all system telemetry (Kafka lag, Redis keys, raw AST dumps) inside collapsible accordion panels or move them to a separate `/diagnostics` panel. The primary viewport must focus exclusively on user-friendly data (PR metadata, Risk badges, and AI code generation summaries).
+4. **Defensive States**: Every dynamic component must gracefully handle empty, loading, and error states with beautiful placeholder skeletons or clean illustration text rather than breaking layout lines.
+
+# Backend Constraints (Java 17 / Spring Boot 3)
+1. **Asynchronous Isolation**: REST endpoints receiving webhooks must immediately offload payloads to Kafka partitions and return an HTTP `202 Accepted` response instantly. No continuous blocking threads.
+2. **Strict Idempotency**: Utilize Redis transactional primitives (`SETNX` or unified script bindings) checked inside the consumer layer before triggering heavy downstream AST analysis.
+3. **Clean Code Isolation**: Implement risk scoring metrics purely using the Strategy Design Pattern. Keep the evaluation algorithms separate from the data ingress flows.
+4. **AST Precision**: Treat source code programmatically using JavaParser structure maps. Avoid quick regular expressions for tracking dependency graphs.
+
+# Multi-Agent Engine Constraints (Strict Add-on)
+1. **Isolated LLM Orchestration**: The backend must orchestrate two distinct system prompt boundaries: `SystemCriticArchitect` (focused entirely on static failure detection and strict dependency threat analysis) and `AutomatedPatchDeveloper` (focused on structural zero-blast-radius code synthesis).
+2. **Deterministic Context Injection**: Never allow generic prompts. You must ground the agents by feeding the exact JavaParser code node structure, class signature tokens, and a raw string map of downstream dependent microservices.
+
+# UI/UX Split-Screen Constraints
+1. **The Conflict Workspace Layout**: Replace all basic raw text error lists with an interactive side-by-side component framework (`RefactorProposalWorkspace`).
+2. **Code Diff Contrast**: 
+   - Left side panel: Threat-inducing source code wrapped in a soft background crimson tint (`bg-rose-950/20` with a `border-rose-800/40` frame).
+   - Right side panel: Negotiated alternate refactored block wrapped in a pristine emerald green accent glow (`bg-emerald-950/20` with an `border-emerald-800/40` frame).
+3. **Action Anchors**: Include a high-contrast prominent button labeled "Apply Autonomous Refactor" that triggers a clean scale-spring hover micro-interaction effect.
+

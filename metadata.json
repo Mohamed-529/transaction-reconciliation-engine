@@ -1,0 +1,5 @@
+{
+  "name": "Engineering Change Risk Analyzer",
+  "description": "Real-time AST Git Diff and AI-augmented Regression Risk Engine with Multi-Agent Refactoring Negotiation, Kafka streaming, Redis Idempotency, and OpenAI Grounded Test Generation.",
+  "requestFramePermissions": []
+}

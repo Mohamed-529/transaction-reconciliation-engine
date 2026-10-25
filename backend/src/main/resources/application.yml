@@ -1,0 +1,70 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: engineering-change-risk-analyzer
+
+  # ==========================================
+  # Database Configuration (PostgreSQL)
+  # ==========================================
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/risk_analyzer_db}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:postgrespassword}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  # ==========================================
+  # Redis Configuration (Idempotency & Cache)
+  # ==========================================
+  data:
+    redis:
+      host: ${SPRING_REDIS_HOST:localhost}
+      port: ${SPRING_REDIS_PORT:6379}
+      timeout: 2000ms
+
+  # ==========================================
+  # Kafka Configuration
+  # ==========================================
+  kafka:
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: pr-risk-analysis-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
+
+# ==========================================
+  # LangChain4j / OpenAI Configuration
+  # ==========================================
+langchain4j:
+  open-ai:
+    chat-model:
+      api-key: ${OPENAI_API_KEY:demo-key}
+      model-name: gpt-4o
+      temperature: 0.1
+      max-tokens: 2500
+      timeout: 60s
+
+# Application custom topic configuration
+app:
+  kafka:
+    topics:
+      pr-analysis: pr-analysis-events
+  idempotency:
+    ttl-seconds: 86400 # 24 hours lock for X-GitHub-Delivery

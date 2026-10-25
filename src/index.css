@@ -1,0 +1,74 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  }
+}
+
+/* Ambient Pulse Glow Keyframes */
+@keyframes ambientPulseCritical {
+  0%, 100% {
+    box-shadow: 0 0 18px -2px rgba(244, 63, 94, 0.22), inset 0 0 14px -3px rgba(244, 63, 94, 0.1);
+    border-color: rgba(244, 63, 94, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 32px 3px rgba(244, 63, 94, 0.42), inset 0 0 24px 2px rgba(244, 63, 94, 0.18);
+    border-color: rgba(244, 63, 94, 0.65);
+  }
+}
+
+@keyframes ambientPulseWarning {
+  0%, 100% {
+    box-shadow: 0 0 18px -2px rgba(245, 158, 11, 0.22), inset 0 0 14px -3px rgba(245, 158, 11, 0.1);
+    border-color: rgba(245, 158, 11, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 32px 3px rgba(245, 158, 11, 0.42), inset 0 0 24px 2px rgba(245, 158, 11, 0.18);
+    border-color: rgba(245, 158, 11, 0.65);
+  }
+}
+
+@keyframes slideFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ambient-pulse-critical {
+  animation: ambientPulseCritical 3.5s ease-in-out infinite;
+}
+
+.ambient-pulse-warning {
+  animation: ambientPulseWarning 3.5s ease-in-out infinite;
+}
+
+.stagger-step-1 {
+  animation: slideFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 0ms;
+}
+
+.stagger-step-2 {
+  animation: slideFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 80ms;
+}
+
+.stagger-step-3 {
+  animation: slideFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 160ms;
+}
+
+.stagger-step-4 {
+  animation: slideFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 240ms;
+}
+
+.stagger-step-5 {
+  animation: slideFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 320ms;
+}
