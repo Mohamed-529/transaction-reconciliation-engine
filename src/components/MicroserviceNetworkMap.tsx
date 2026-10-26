@@ -50,12 +50,12 @@ export const MicroserviceNetworkMap: React.FC<Props> = ({
           }}
         />
 
-        <div className="relative flex flex-col md:flex-row items-center justify-between gap-8 md:gap-12">
+        <div className="relative flex flex-col md:flex-row items-center justify-between gap-5 md:gap-8 lg:gap-12 min-w-0">
           {/* 1. Root Source Node */}
           <div 
             onMouseEnter={() => setHoveredNode('ROOT')}
             onMouseLeave={() => setHoveredNode(null)}
-            className={`w-full md:w-64 p-4 rounded-xl border transition-all cursor-pointer relative z-10 ${
+            className={`w-full md:w-60 lg:w-64 p-3.5 sm:p-4 rounded-xl border transition-all cursor-pointer relative z-10 shrink-0 ${
               isRootHovered || hoveredNode
                 ? isCritical
                   ? 'bg-rose-950/40 border-rose-500/70 ring-2 ring-rose-500/30 shadow-lg shadow-rose-950/50'
@@ -81,39 +81,39 @@ export const MicroserviceNetworkMap: React.FC<Props> = ({
               </span>
             </div>
 
-            <div className="flex items-center gap-2.5">
-              <div className={`p-2 rounded-lg ${isCritical ? 'bg-rose-950 text-rose-400' : 'bg-amber-950 text-amber-400'}`}>
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className={`p-2 rounded-lg shrink-0 ${isCritical ? 'bg-rose-950 text-rose-400' : 'bg-amber-950 text-amber-400'}`}>
                 <GitCommit className="w-4 h-4" />
               </div>
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <div className="font-mono text-xs font-bold text-white truncate">
                   {rootClass}.java
                 </div>
-                <div className="text-[10px] text-slate-400">
+                <div className="text-[10px] text-slate-400 truncate">
                   Target AST Method Signature
                 </div>
               </div>
             </div>
           </div>
 
-          {/* 2. Middle Signal Connector Bus */}
-          <div className="hidden md:flex flex-col items-center justify-center shrink-0 w-16">
-            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-slate-900 border border-slate-700 text-slate-400 text-xs shadow-inner">
-              <ArrowRight className={`w-4 h-4 transition-transform duration-300 ${isRootHovered || hoveredNode ? 'translate-x-0.5 text-blue-400' : ''}`} />
+          {/* 2. Middle Signal Connector Bus: Adapts direction on mobile/desktop */}
+          <div className="flex md:flex-col items-center justify-center shrink-0 w-full md:w-14 py-1 md:py-0">
+            <div className="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-900 border border-slate-700 text-slate-400 text-xs shadow-inner">
+              <ArrowRight className={`w-3.5 h-3.5 sm:w-4 sm:h-4 rotate-90 md:rotate-0 transition-transform duration-300 ${isRootHovered || hoveredNode ? 'text-blue-400' : ''}`} />
             </div>
-            <div className="text-[9px] font-mono text-slate-500 uppercase tracking-widest mt-1">
+            <div className="hidden md:block text-[9px] font-mono text-slate-500 uppercase tracking-widest mt-1">
               Cascade
             </div>
           </div>
 
           {/* 3. Downstream Target Microservices */}
-          <div className="w-full flex-1 space-y-2.5">
+          <div className="w-full flex-1 space-y-2.5 min-w-0">
             <div className="text-[11px] font-mono text-slate-400 font-semibold mb-2 flex items-center justify-between">
               <span>Impacted Downstream Callers ({downstreamCallers.length})</span>
               <span className="text-[10px] text-slate-500">Dependent Services</span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 min-w-0">
               {downstreamCallers.map((caller, idx) => {
                 const isTargetHovered = hoveredNode === caller;
                 const isHighlighted = isRootHovered || isTargetHovered;
@@ -123,7 +123,7 @@ export const MicroserviceNetworkMap: React.FC<Props> = ({
                     key={idx}
                     onMouseEnter={() => setHoveredNode(caller)}
                     onMouseLeave={() => setHoveredNode(null)}
-                    className={`p-3 rounded-xl border transition-all cursor-pointer relative overflow-hidden ${
+                    className={`p-2.5 sm:p-3 rounded-xl border transition-all cursor-pointer relative overflow-hidden min-w-0 ${
                       isHighlighted
                         ? isCritical
                           ? 'bg-rose-950/35 border-rose-500/60 ring-1 ring-rose-500/30 shadow-md'
@@ -140,8 +140,8 @@ export const MicroserviceNetworkMap: React.FC<Props> = ({
                       />
                     )}
 
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 truncate">
+                    <div className="flex items-center justify-between gap-2 min-w-0">
+                      <div className="flex items-center gap-2 truncate min-w-0 flex-1">
                         <Server className={`w-3.5 h-3.5 shrink-0 ${
                           isHighlighted
                             ? isCritical ? 'text-rose-400' : 'text-amber-400'

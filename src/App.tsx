@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   GitPullRequest, 
   Server, 
@@ -11,14 +11,21 @@ import {
   ArrowRight,
   ShieldAlert,
   ShieldCheck,
-  FileText
+  FileText,
+  Play,
+  Film,
+  Sparkles,
+  Menu,
+  X,
+  ChevronLeft
 } from 'lucide-react';
-import { PrAnalysisRecord, KafkaTopicStats, RedisIdempotencyLock, RiskBadgeType } from './types';
+import { PrAnalysisRecord, KafkaTopicStats, RedisIdempotencyLock, RiskBadgeType, StoryStepState } from './types';
 import { RiskBadgeDisplay } from './components/RiskBadgeDisplay';
 import { TestViewer } from './components/TestViewer';
 import { InfrastructureView } from './components/InfrastructureView';
 import { SimulateModal } from './components/SimulateModal';
 import { PrDetailView } from './components/PrDetailView';
+import { SystemStoryDirector } from './components/SystemStoryDirector';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'prs' | 'infra'>('prs');
@@ -28,6 +35,10 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [storyStep, setStoryStep] = useState<StoryStepState>('STORY_IDLE');
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+  const [mobilePrView, setMobilePrView] = useState<'list' | 'detail'>('list');
+  const programmaticApplyRef = useRef<(() => void) | null>(null);
 
   const [kafkaStats, setKafkaStats] = useState<KafkaTopicStats>({
     topic: 'pr-analysis-events',
@@ -152,10 +163,106 @@ export default function App() {
 
   const selectedPr = analyses.find((a) => a.id === selectedId) || analyses[0];
 
+  useEffect(() => {
+    if (storyStep !== 'STORY_IDLE') {
+      setActiveTab('prs');
+      setMobilePrView('detail');
+    }
+  }, [storyStep]);
+
+  const handleSelectPr = (id: string) => {
+    setSelectedId(id);
+    setMobilePrView('detail');
+  };
+
   return (
-    <div className="flex h-screen bg-slate-950 text-slate-100 antialiased overflow-hidden selection:bg-blue-600 selection:text-white">
-      {/* 1. Sidebar Navigation */}
-      <aside className="w-64 border-r border-slate-800 bg-slate-900/60 flex flex-col justify-between shrink-0">
+    <div className="flex h-screen w-full bg-slate-950 text-slate-100 antialiased overflow-hidden selection:bg-blue-600 selection:text-white">
+      {/* 1. Mobile Sliding Navigation Drawer */}
+      {isMobileNavOpen && (
+        <div className="fixed inset-0 z-40 lg:hidden">
+          {/* Backdrop */}
+          <div
+            onClick={() => setIsMobileNavOpen(false)}
+            className="absolute inset-0 bg-slate-950/75 backdrop-blur-sm transition-opacity"
+          />
+
+          {/* Drawer Sidebar */}
+          <aside className="relative w-72 max-w-[85vw] h-full bg-slate-900 border-r border-slate-800 flex flex-col justify-between shadow-2xl p-5 z-50 animate-in slide-in-from-left duration-200">
+            <div>
+              {/* Header inside drawer */}
+              <div className="flex items-center justify-between pb-5 border-b border-slate-800">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-sm">
+                    <Layers className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h1 className="text-sm font-semibold tracking-tight text-white">Risk Analyzer</h1>
+                    <p className="text-[11px] text-slate-400">Engineering Quality Engine</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setIsMobileNavOpen(false)}
+                  className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Navigation Links inside drawer */}
+              <nav className="mt-5 space-y-1.5">
+                <button
+                  onClick={() => {
+                    setActiveTab('prs');
+                    setIsMobileNavOpen(false);
+                  }}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                    activeTab === 'prs'
+                      ? 'bg-slate-800 text-white shadow-sm'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-850'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <GitPullRequest className="w-4 h-4" />
+                    <span>Pull Requests</span>
+                  </div>
+                  <span className="text-[11px] px-1.5 py-0.5 rounded bg-slate-950 text-slate-300 font-mono">
+                    {analyses.length}
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setActiveTab('infra');
+                    setIsMobileNavOpen(false);
+                  }}
+                  className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                    activeTab === 'infra'
+                      ? 'bg-slate-800 text-white shadow-sm'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-850'
+                  }`}
+                >
+                  <Server className="w-4 h-4" />
+                  <span>Infrastructure</span>
+                </button>
+              </nav>
+            </div>
+
+            {/* Health status inside drawer */}
+            <div className="p-4 rounded-xl border border-slate-800 bg-slate-950/60 mt-auto">
+              <div className="flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                  <span className="text-slate-300 font-medium text-[11px]">System Operational</span>
+                </div>
+                <span className="text-[10px] text-slate-500 font-mono">Kafka + Redis</span>
+              </div>
+            </div>
+          </aside>
+        </div>
+      )}
+
+      {/* 2. Desktop Persistent Sidebar */}
+      <aside className="hidden lg:flex w-64 border-r border-slate-800 bg-slate-900/60 flex-col justify-between shrink-0">
         <div className="p-5">
           {/* Brand Wordmark */}
           <div className="flex items-center gap-2.5 pb-6 border-b border-slate-800">
@@ -213,39 +320,71 @@ export default function App() {
         </div>
       </aside>
 
-      {/* 2. Main Content Viewport */}
+      {/* 3. Main Content Viewport */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top Header Bar */}
-        <header className="h-14 border-b border-slate-800 bg-slate-900/40 px-6 flex items-center justify-between shrink-0">
-          {/* Breadcrumbs */}
-          <div className="flex items-center gap-2 text-xs text-slate-400 font-medium">
-            <span>Engineering</span>
-            <span>/</span>
-            {activeTab === 'prs' ? (
-              <>
-                <span className="text-slate-200">Pull Requests</span>
-                {selectedPr && (
-                  <>
-                    <span>/</span>
-                    <span className="text-slate-200 font-mono truncate max-w-xs">
-                      PR #{selectedPr.prNumber}
-                    </span>
-                  </>
-                )}
-              </>
-            ) : (
-              <span className="text-slate-200">Infrastructure & Telemetry</span>
-            )}
+        <header className="h-14 border-b border-slate-800 bg-slate-900/40 px-3 sm:px-6 flex items-center justify-between shrink-0 gap-2">
+          {/* Left: Mobile Drawer Trigger + Breadcrumbs */}
+          <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+            <button
+              onClick={() => setIsMobileNavOpen(true)}
+              className="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer shrink-0"
+              title="Open Navigation"
+              aria-label="Open Navigation"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-1.5 sm:gap-2 text-xs text-slate-400 font-medium min-w-0">
+              <span className="hidden sm:inline">Engineering</span>
+              <span className="hidden sm:inline">/</span>
+              {activeTab === 'prs' ? (
+                <>
+                  <span className="text-slate-200 truncate">Pull Requests</span>
+                  {selectedPr && (
+                    <>
+                      <span>/</span>
+                      <span className="text-slate-200 font-mono truncate max-w-[80px] xs:max-w-[120px] sm:max-w-xs">
+                        PR #{selectedPr.prNumber}
+                      </span>
+                    </>
+                  )}
+                </>
+              ) : (
+                <span className="text-slate-200 truncate">Infrastructure & Telemetry</span>
+              )}
+            </div>
           </div>
 
-          {/* Primary Action Button */}
-          <div className="flex items-center gap-3">
+          {/* Right: Primary Action Buttons */}
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            {/* Play System Story Button with Active Particle Pulse Effect */}
+            <div className="relative group">
+              <span className="absolute -inset-1 rounded-xl bg-gradient-to-r from-violet-600 to-blue-500 opacity-75 blur-sm particle-pulse-ring pointer-events-none" />
+              <button
+                onClick={() => {
+                  setActiveTab('prs');
+                  setMobilePrView('detail');
+                  setStoryStep('STORY_INGESTION');
+                }}
+                className="relative flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-indigo-600 via-blue-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white text-xs font-bold shadow-md shadow-indigo-950/50 transition-all cursor-pointer border border-blue-400/40 transform hover:scale-[1.02] active:scale-98"
+              >
+                <Play className="w-3.5 h-3.5 fill-white text-white shrink-0" />
+                <span className="hidden sm:inline">Play System Story</span>
+                <span className="sm:hidden font-semibold">Story</span>
+                <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-white/20 text-blue-100 font-bold tracking-wider hidden xs:inline">
+                  Tour
+                </span>
+              </button>
+            </div>
+
             <button
               onClick={() => setIsModalOpen(true)}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-sm transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700 transition-colors cursor-pointer shrink-0"
             >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Simulate Inbound PR</span>
+              <Plus className="w-3.5 h-3.5 shrink-0" />
+              <span className="hidden sm:inline">Simulate Inbound PR</span>
+              <span className="sm:hidden">Simulate</span>
             </button>
           </div>
         </header>
@@ -254,9 +393,11 @@ export default function App() {
         {activeTab === 'prs' ? (
           <div className="flex-1 flex min-w-0 overflow-hidden">
             {/* Primary Column: Pull Request Queue */}
-            <div className="w-96 border-r border-slate-800 flex flex-col bg-slate-950/50 shrink-0">
+            <div className={`w-full md:w-80 lg:w-96 border-r border-slate-800 flex-col bg-slate-950/50 shrink-0 ${
+              mobilePrView === 'detail' ? 'hidden md:flex' : 'flex'
+            }`}>
               {/* Search & Filter Header */}
-              <div className="p-4 border-b border-slate-800 space-y-3">
+              <div className="p-3 sm:p-4 border-b border-slate-800 space-y-2.5 sm:space-y-3">
                 <div className="relative">
                   <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-2.5" />
                   <input
@@ -309,8 +450,8 @@ export default function App() {
                     return (
                       <button
                         key={pr.id}
-                        onClick={() => setSelectedId(pr.id)}
-                        className={`w-full text-left p-4 transition-colors cursor-pointer ${
+                        onClick={() => handleSelectPr(pr.id)}
+                        className={`w-full text-left p-3.5 sm:p-4 transition-colors cursor-pointer ${
                           isSelected
                             ? 'bg-slate-900 text-white'
                             : 'hover:bg-slate-900/40 text-slate-300'
@@ -328,7 +469,7 @@ export default function App() {
                         </div>
 
                         <div className="flex items-center justify-between text-[11px] text-slate-400">
-                          <div className="flex items-center gap-1.5 truncate max-w-[180px]">
+                          <div className="flex items-center gap-1.5 truncate max-w-[170px]">
                             <User className="w-3 h-3 text-slate-500 shrink-0" />
                             <span className="truncate">{pr.author?.name || 'Engineer'}</span>
                           </div>
@@ -344,9 +485,33 @@ export default function App() {
             </div>
 
             {/* Detail View Pane */}
-            <div className="flex-1 overflow-y-auto p-8 lg:p-10">
+            <div className={`flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 xl:p-10 ${
+              mobilePrView === 'list' ? 'hidden md:block' : 'block'
+            }`}>
+              {/* Mobile Back Navigation Bar */}
+              <div className="md:hidden flex items-center justify-between pb-3.5 mb-5 border-b border-slate-800">
+                <button
+                  onClick={() => setMobilePrView('list')}
+                  className="flex items-center gap-1.5 text-xs text-blue-400 hover:text-blue-300 font-semibold py-1.5 px-3 rounded-lg bg-blue-950/40 border border-blue-900/60 transition-colors cursor-pointer"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  <span>Pull Requests Queue</span>
+                </button>
+                {selectedPr && (
+                  <span className="text-xs font-mono text-slate-400">
+                    PR #{selectedPr.prNumber}
+                  </span>
+                )}
+              </div>
+
               {selectedPr ? (
-                <PrDetailView pr={selectedPr} onRefactorApplied={fetchSystemData} />
+                <PrDetailView
+                  pr={selectedPr}
+                  onRefactorApplied={fetchSystemData}
+                  isStoryMode={storyStep !== 'STORY_IDLE'}
+                  storyStep={storyStep}
+                  onProgrammaticApplyRef={programmaticApplyRef}
+                />
               ) : (
                 <div className="h-full flex items-center justify-center text-slate-500 text-xs">
                   Select a pull request from the queue to view its risk assessment.
@@ -356,7 +521,7 @@ export default function App() {
           </div>
         ) : (
           /* 3. Dedicated Infrastructure & Telemetry View */
-          <div className="flex-1 overflow-y-auto p-8">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
             <InfrastructureView
               kafkaStats={kafkaStats}
               redisLocks={redisLocks}
@@ -374,6 +539,17 @@ export default function App() {
         onClose={() => setIsModalOpen(false)}
         onTriggerWebhook={handleTriggerWebhook}
         isSubmitting={isSubmitting}
+      />
+
+      {/* 5. System Story Director */}
+      <SystemStoryDirector
+        storyStep={storyStep}
+        onSetStoryStep={setStoryStep}
+        onSelectPrId={setSelectedId}
+        analyses={analyses}
+        onRefreshData={fetchSystemData}
+        onProgrammaticApplyRef={programmaticApplyRef}
+        onSetActiveTab={setActiveTab}
       />
     </div>
   );

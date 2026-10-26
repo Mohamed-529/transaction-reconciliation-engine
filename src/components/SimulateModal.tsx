@@ -48,18 +48,18 @@ export const SimulateModal: React.FC<Props> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-6 shadow-2xl space-y-5 animate-in fade-in-0 zoom-in-95 duration-150">
-        <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-          <div>
-            <h3 className="font-semibold text-base text-white">Simulate Inbound Pull Request</h3>
-            <p className="text-xs text-slate-400 mt-0.5">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-150">
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-4 sm:p-6 shadow-2xl space-y-4 sm:space-y-5 animate-in zoom-in-95 duration-150 max-h-[92vh] overflow-y-auto">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-800 gap-2">
+          <div className="min-w-0">
+            <h3 className="font-semibold text-sm sm:text-base text-white truncate">Simulate Inbound Pull Request</h3>
+            <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5 break-words">
               Dispatches a simulated GitHub webhook payload to <code className="text-slate-300 font-mono">/api/v1/webhooks/github</code>.
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+            className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer shrink-0"
           >
             <X className="w-5 h-5" />
           </button>
@@ -70,38 +70,38 @@ export const SimulateModal: React.FC<Props> = ({
             <div
               key={preset.id}
               onClick={() => setSelectedPreset(preset.id)}
-              className={`p-3.5 rounded-xl border transition-all cursor-pointer ${
+              className={`p-3 sm:p-3.5 rounded-xl border transition-all cursor-pointer ${
                 selectedPreset === preset.id
                   ? 'bg-slate-800/80 border-blue-500/60 ring-1 ring-blue-500/40'
                   : 'bg-slate-950/60 border-slate-800/80 hover:border-slate-700'
               }`}
             >
-              <div className="flex items-center justify-between mb-1">
+              <div className="flex flex-wrap items-center justify-between mb-1 gap-1">
                 <span className="font-semibold text-xs text-white">{preset.title}</span>
-                <span className="text-[11px] font-mono font-medium text-slate-300">
+                <span className="text-[10px] sm:text-[11px] font-mono font-medium text-slate-300 px-1.5 py-0.5 rounded bg-slate-900 border border-slate-800">
                   {preset.risk}
                 </span>
               </div>
-              <div className="text-[11px] text-slate-400 mb-1.5">{preset.author}</div>
-              <p className="text-xs text-slate-400">{preset.description}</p>
+              <div className="text-[10px] sm:text-[11px] text-slate-400 mb-1">{preset.author}</div>
+              <p className="text-[11px] sm:text-xs text-slate-400 leading-relaxed">{preset.description}</p>
             </div>
           ))}
         </div>
 
-        <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
+        <div className="flex flex-wrap items-center justify-end gap-2.5 sm:gap-3 pt-3 border-t border-slate-800">
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-lg text-xs font-medium text-slate-400 hover:text-white transition-colors cursor-pointer"
+            className="px-3.5 py-2 rounded-lg text-xs font-medium text-slate-400 hover:text-white transition-colors cursor-pointer"
           >
             Cancel
           </button>
           <button
             onClick={handleDispatch}
             disabled={isSubmitting}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-xs font-semibold text-white shadow-sm transition-colors cursor-pointer disabled:opacity-50"
+            className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-xs font-semibold text-white shadow-sm transition-colors cursor-pointer disabled:opacity-50 text-center"
           >
-            <Send className="w-3.5 h-3.5" />
-            <span>{isSubmitting ? 'Dispatching...' : 'Dispatch Webhook (202 Accepted)'}</span>
+            <Send className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">{isSubmitting ? 'Dispatching...' : 'Dispatch Webhook (202 Accepted)'}</span>
           </button>
         </div>
       </div>

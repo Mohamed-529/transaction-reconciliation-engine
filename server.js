@@ -306,7 +306,7 @@ function getPresetData(presetKey) {
   return {
     title: 'Refactor PaymentGateway authorization signature with multi-currency tokens',
     repo: 'Mohamed-529/transaction-reconciliation-engine',
-    prNumber: 41,
+    prNumber: 104,
     author: {
       name: 'Sarah Chen',
       username: 'sarah-core'
@@ -661,6 +661,32 @@ app.post('/api/v1/analyses/:id/apply-refactor', (req, res) => {
     message: 'Negotiated zero-blast-radius refactor successfully applied to workspace branch.',
     analysis: item
   });
+});
+
+// Cinematic Storytelling Mode: Reset or seed PR #104
+app.post('/api/v1/story/reset-pr104', (req, res) => {
+  let pr = prAnalyses.find(p => p.prNumber === 104 || p.id === 'pr-deliv-seed-001');
+  if (pr) {
+    pr.isRefactorApplied = false;
+    pr.overallRiskBadge = 'CRITICAL';
+    pr.blastRadiusScore = 95;
+    pr.complexityScore = 75;
+    pr.astMetadata.downstreamCallers = computeDownstreamBlastRadius(['PaymentGateway']);
+    if (pr.refactorProposal) {
+      pr.refactorProposal.isApplied = false;
+    }
+  } else {
+    pr = createAnalysisRecord('critical', 'deliv-seed-001', 5);
+    pr.prNumber = 104;
+    prAnalyses.unshift(pr);
+  }
+  kafkaStats.totalMessagesPublished++;
+  kafkaStats.totalMessagesConsumed++;
+  broadcastSSE({
+    type: 'ANALYSIS_COMPLETED',
+    analysis: pr
+  });
+  res.json({ status: 'ok', analysis: pr });
 });
 
 // System Telemetry (Kafka topics, Redis locks, Postgres health)

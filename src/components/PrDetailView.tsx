@@ -12,7 +12,7 @@ import {
   Layers,
   Code2
 } from 'lucide-react';
-import { PrAnalysisRecord } from '../types';
+import { PrAnalysisRecord, StoryStepState } from '../types';
 import { RiskBadgeDisplay } from './RiskBadgeDisplay';
 import { TestViewer } from './TestViewer';
 import { AnimatedCounter } from './AnimatedCounter';
@@ -22,10 +22,23 @@ import { RefactorProposalCard } from './RefactorProposalCard';
 interface Props {
   pr: PrAnalysisRecord;
   onRefactorApplied?: () => void;
+  isStoryMode?: boolean;
+  storyStep?: StoryStepState;
+  onProgrammaticApplyRef?: React.MutableRefObject<(() => void) | null>;
 }
 
-export const PrDetailView: React.FC<Props> = ({ pr, onRefactorApplied }) => {
+export const PrDetailView: React.FC<Props> = ({
+  pr,
+  onRefactorApplied,
+  isStoryMode = false,
+  storyStep = 'STORY_IDLE',
+  onProgrammaticApplyRef
+}) => {
   const [localApplied, setLocalApplied] = useState(pr.isRefactorApplied || false);
+
+  React.useEffect(() => {
+    setLocalApplied(pr.isRefactorApplied || false);
+  }, [pr.isRefactorApplied]);
 
   const isCritical = pr.overallRiskBadge === 'CRITICAL' && !localApplied;
   const isHigh = pr.overallRiskBadge === 'HIGH' && !localApplied;
@@ -70,147 +83,173 @@ export const PrDetailView: React.FC<Props> = ({ pr, onRefactorApplied }) => {
   };
 
   return (
-    <div key={pr.id} className="max-w-4xl space-y-8 pb-12">
+    <div key={pr.id} className="w-full min-w-0 max-w-4xl space-y-6 sm:space-y-8 pb-12">
       {/* 1. Stagger Step 1: Header & Title Block */}
-      <div className="stagger-step-1 space-y-3 pb-6 border-b border-slate-800/80">
-        <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400 font-mono">
+      <div className="stagger-step-1 space-y-2.5 sm:space-y-3 pb-5 sm:pb-6 border-b border-slate-800/80">
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs text-slate-400 font-mono">
           <span className="font-semibold text-slate-200">PR #{pr.prNumber}</span>
           <span>·</span>
-          <span>{pr.author?.name} (@{pr.author?.username})</span>
+          <span className="truncate max-w-[150px] sm:max-w-none">{pr.author?.name} (@{pr.author?.username})</span>
           <span>·</span>
-          <span className="text-slate-400">{pr.branch?.target} ← {pr.branch?.source}</span>
-          <span>·</span>
-          <span>{pr.repository}</span>
+          <span className="text-slate-400 truncate max-w-[140px] sm:max-w-none">{pr.branch?.target} ← {pr.branch?.source}</span>
+          <span className="hidden sm:inline">·</span>
+          <span className="hidden sm:inline">{pr.repository}</span>
         </div>
 
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-tight">
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-white tracking-tight leading-tight break-words">
           {pr.title}
         </h1>
       </div>
 
       {/* 2. Stagger Step 2: The "At-A-Glance" Hero Banner with Pulse Glow */}
-      <div className={`stagger-step-2 p-5 sm:p-6 rounded-2xl border ${getHeroBannerGlowClass()} shadow-xl flex flex-col sm:flex-row items-start sm:items-center gap-4 transition-all`}>
+      <div className={`stagger-step-2 p-4 sm:p-6 rounded-2xl border ${getHeroBannerGlowClass()} shadow-xl flex flex-col sm:flex-row items-start sm:items-center gap-3.5 sm:gap-4 transition-all min-w-0`}>
         <div className="shrink-0">
           <RiskBadgeDisplay badge={isMitigated ? 'LOW' : pr.overallRiskBadge} size="lg" />
         </div>
-        <div className="flex-1 text-sm sm:text-base font-bold text-white tracking-tight leading-snug">
+        <div className="flex-1 text-xs sm:text-sm md:text-base font-bold text-white tracking-tight leading-snug break-words">
           {getHeroImpactSentence()}
         </div>
       </div>
 
       {/* 3. Stagger Step 3: Interactive Multi-Agent Refactoring Negotiation Workspace */}
       {pr.refactorProposal && (
-        <div className="stagger-step-3">
+        <div className="stagger-step-3 min-w-0">
           <RefactorProposalCard
             prId={pr.id}
             proposal={pr.refactorProposal}
             isApplied={isMitigated}
             targetFileName={pr.astMetadata.classes?.[0] ? `${pr.astMetadata.classes[0]}.java` : 'PaymentGateway.java'}
             onApplySuccess={handleApplySuccess}
+            isStoryMode={isStoryMode}
+            storyStep={storyStep}
+            onProgrammaticApplyRef={onProgrammaticApplyRef}
           />
         </div>
       )}
 
       {/* 4. Stagger Step 3: Summary of Changes (when no critical refactor proposal or for context) */}
-      <div className="stagger-step-3 bg-slate-900/70 border border-slate-800 rounded-2xl p-6 shadow-sm">
-        <div className="flex items-center gap-2 mb-3">
+      <div className="stagger-step-3 bg-slate-900/70 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-sm min-w-0">
+        <div className="flex items-center gap-2 mb-2.5 sm:mb-3">
           <FileText className="w-4 h-4 text-slate-400" />
           <h2 className="text-xs font-semibold text-slate-300 uppercase tracking-wider font-mono">
             Summary of Changes
           </h2>
         </div>
-        <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
+        <p className="text-xs sm:text-sm md:text-base text-slate-300 leading-relaxed break-words">
           {pr.summary}
         </p>
       </div>
 
       {/* 5. Stagger Step 4: AST Metrics Visual Impact Cards with Live Counter-Tick Effect */}
-      <div className="stagger-step-4 space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider font-mono">
-            AST Structural & Architectural Impact
-          </h2>
-          <span className="text-xs text-slate-500 font-mono">Live AST tokenized counters</span>
+      <div
+        id="story-step-metrics"
+        className={`stagger-step-4 space-y-3 p-3.5 sm:p-4 rounded-2xl transition-all duration-500 min-w-0 ${
+          isStoryMode && storyStep === 'STORY_ANALYSIS'
+            ? 'border-2 border-blue-500/80 ring-4 ring-blue-500/50 shadow-[0_0_50px_rgba(59,130,246,0.45)] bg-slate-900/60 z-20'
+            : ''
+        }`}
+      >
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider font-mono">
+              AST Structural & Architectural Impact
+            </h2>
+            {isStoryMode && storyStep === 'STORY_ANALYSIS' && (
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/40 font-bold uppercase animate-pulse">
+                Live Analysis In Progress
+              </span>
+            )}
+          </div>
+          <span className="text-[11px] sm:text-xs text-slate-500 font-mono">Live AST tokenized counters</span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
           {/* Card 1: Impacted Source Files */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between shadow-sm">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 lg:p-6 flex flex-col justify-between shadow-sm min-w-0">
             <div>
               <div className="text-xs font-medium text-slate-400 uppercase tracking-wider">
                 Impacted Files
               </div>
-              <div className="text-3xl font-black font-mono tracking-tight text-white mt-2">
-                <AnimatedCounter target={pr.astMetadata.classes?.length || 1} duration={400} />{' '}
-                <span className="text-sm font-normal text-slate-400">File</span>
+              <div className="text-2xl sm:text-3xl font-black font-mono tracking-tight text-white mt-1.5 sm:mt-2">
+                <AnimatedCounter key={`files-${pr.id}-${storyStep}`} target={pr.astMetadata.classes?.length || 1} duration={400} />{' '}
+                <span className="text-xs sm:text-sm font-normal text-slate-400">File</span>
               </div>
             </div>
-            <div className="mt-4 pt-3 border-t border-slate-800/80 text-xs font-mono text-slate-400 truncate">
+            <div className="mt-3.5 sm:mt-4 pt-3 border-t border-slate-800/80 text-xs font-mono text-slate-400 truncate">
               {pr.astMetadata.classes?.[0] || 'TargetClass'}.java
             </div>
           </div>
 
           {/* Card 2: Max Nesting Depth */}
-          <div className={`rounded-2xl p-6 flex flex-col justify-between border shadow-sm transition-all ${
+          <div className={`rounded-2xl p-4 sm:p-5 lg:p-6 flex flex-col justify-between border shadow-sm transition-all min-w-0 ${
             isDeepNesting 
               ? 'bg-amber-950/25 border-amber-500/40 ring-1 ring-amber-500/30 ambient-pulse-warning' 
               : 'bg-slate-900 border-slate-800'
           }`}>
             <div>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-1">
                 <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">
                   Max Nesting Depth
                 </span>
                 {isDeepNesting ? (
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold uppercase">
-                    High Complexity
+                  <span className="text-[10px] font-mono px-1.5 sm:px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold uppercase shrink-0">
+                    High
                   </span>
                 ) : isMitigated ? (
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-bold uppercase">
+                  <span className="text-[10px] font-mono px-1.5 sm:px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-bold uppercase shrink-0">
                     Flattened
                   </span>
                 ) : null}
               </div>
-              <div className={`text-3xl font-black font-mono tracking-tight mt-2 ${
+              <div className={`text-2xl sm:text-3xl font-black font-mono tracking-tight mt-1.5 sm:mt-2 ${
                 isDeepNesting ? 'text-amber-400' : isMitigated ? 'text-emerald-400' : 'text-white'
               }`}>
-                Depth <AnimatedCounter target={isMitigated ? 1 : pr.astMetadata.maxNestingDepth} duration={450} />
+                Depth{' '}
+                <AnimatedCounter
+                  key={`depth-${pr.id}-${storyStep}`}
+                  target={isMitigated ? 1 : (isStoryMode && storyStep === 'STORY_ANALYSIS' ? 4 : (pr.astMetadata.maxNestingDepth || 4))}
+                  duration={380}
+                />
               </div>
             </div>
-            <div className="mt-4 pt-3 border-t border-slate-800/80 text-xs text-slate-400">
+            <div className="mt-3.5 sm:mt-4 pt-3 border-t border-slate-800/80 text-xs text-slate-400 leading-snug">
               {isMitigated ? 'Flattened to linear pipeline with guard clauses' : isDeepNesting ? 'Cyclomatic branching exceeds threshold' : 'Standard cyclomatic control flow'}
             </div>
           </div>
 
           {/* Card 3: Downstream Blast Radius */}
-          <div className={`rounded-2xl p-6 flex flex-col justify-between border shadow-sm transition-all ${
-            hasHighBlastRadius 
+          <div className={`sm:col-span-2 lg:col-span-1 rounded-2xl p-4 sm:p-5 lg:p-6 flex flex-col justify-between border shadow-sm transition-all min-w-0 ${
+            hasHighBlastRadius || (isStoryMode && storyStep === 'STORY_ANALYSIS')
               ? 'bg-rose-950/25 border-rose-500/40 ring-1 ring-rose-500/30 ambient-pulse-critical' 
               : 'bg-slate-900 border-slate-800'
           }`}>
             <div>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-1">
                 <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">
                   Downstream Blast Radius
                 </span>
-                {hasHighBlastRadius ? (
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/40 font-bold uppercase">
+                {hasHighBlastRadius || (isStoryMode && storyStep === 'STORY_ANALYSIS') ? (
+                  <span className="text-[10px] font-mono px-1.5 sm:px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/40 font-bold uppercase shrink-0">
                     Wide Fan-Out
                   </span>
                 ) : isMitigated ? (
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-bold uppercase">
+                  <span className="text-[10px] font-mono px-1.5 sm:px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-bold uppercase shrink-0">
                     Neutralized
                   </span>
                 ) : null}
               </div>
-              <div className={`text-3xl font-black font-mono tracking-tight mt-2 ${
-                hasHighBlastRadius ? 'text-rose-400' : 'text-emerald-400'
+              <div className={`text-2xl sm:text-3xl font-black font-mono tracking-tight mt-1.5 sm:mt-2 ${
+                hasHighBlastRadius || (isStoryMode && storyStep === 'STORY_ANALYSIS') ? 'text-rose-400' : 'text-emerald-400'
               }`}>
-                <AnimatedCounter target={callersCount} duration={500} />{' '}
-                <span className="text-sm font-normal text-slate-400">Microservices</span>
+                <AnimatedCounter
+                  key={`callers-${pr.id}-${storyStep}`}
+                  target={isMitigated ? 0 : (isStoryMode && storyStep === 'STORY_ANALYSIS' ? 5 : (callersCount || 5))}
+                  duration={400}
+                />{' '}
+                <span className="text-xs sm:text-sm font-normal text-slate-400">Microservices</span>
               </div>
             </div>
-            <div className="mt-4 pt-3 border-t border-slate-800/80 text-xs text-slate-400">
+            <div className="mt-3.5 sm:mt-4 pt-3 border-t border-slate-800/80 text-xs text-slate-400 leading-snug">
               {isMitigated ? 'All 5 downstream caller ABI contracts preserved' : hasHighBlastRadius ? 'Cross-service regression vector' : 'Isolated to component level'}
             </div>
           </div>

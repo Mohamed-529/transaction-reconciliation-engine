@@ -1,5 +1,12 @@
 export type RiskBadgeType = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
 
+export type StoryStepState = 
+  | 'STORY_IDLE'
+  | 'STORY_INGESTION'
+  | 'STORY_ANALYSIS'
+  | 'STORY_NEGOTIATION'
+  | 'STORY_RESOLVED';
+
 export interface StrategyResult {
   strategyName: string;
   calculatedScore: number;
